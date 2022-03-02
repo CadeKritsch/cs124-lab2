@@ -1,0 +1,3 @@
+echo node_modules >> .gitignore
+echo build >> .gitigore
+git commit .gitignore -m "Add .gitignore to ignore build and node_modules"
