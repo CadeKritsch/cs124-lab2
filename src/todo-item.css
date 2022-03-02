@@ -1,0 +1,19 @@
+@import './app.css';
+@import './todo-list.css';
+
+.item-container {
+  border: solid black 2px;
+  padding: 5px;
+}
+
+.item-container:hover {
+  cursor: pointer;
+  background-color: black;
+  color: white;
+}
+
+.completed-item {
+  background-color: green;
+  color: white;
+  text-decoration: line-through;
+}

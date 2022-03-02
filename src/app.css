@@ -1,0 +1,26 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2em;
+  min-height: 99vh;
+}
+
+.add-button {
+  border: solid aquamarine 4px;
+  padding: 5px;
+}
+
+.add-button:hover {
+  cursor: pointer;
+  background-color: aquamarine;
+}
