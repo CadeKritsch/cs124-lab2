@@ -1,8 +1,8 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { useState } from "react";
+import PropTypes from "prop-types";
 
-import TodoItem from './TodoItem';
-import './todo-list.css';
+import TodoItem from "./TodoItem";
+import "./todo-list.css";
 
 const TodoList = (props) => {
   return (
@@ -11,13 +11,15 @@ const TodoList = (props) => {
         {props.isCompletedShown
           ? props.data.map((item) => {
               return (
-                <TodoItem
-                  key={item.id}
-                  name={item.itemName}
-                  id={item.id}
-                  status={item.itemStatus}
-                  onItemChange={props.onItemChange}
-                />
+                <>
+                  <TodoItem
+                    key={item.id}
+                    name={item.itemName}
+                    id={item.id}
+                    status={item.itemStatus}
+                    onItemChange={props.onItemChange}
+                  />
+                </>
               );
             })
           : props.data.map((item) => {
@@ -39,7 +41,7 @@ const TodoList = (props) => {
 TodoList.propTypes = {
   data: PropTypes.array.isRequired,
   onItemChange: PropTypes.func,
-  isCompletedShown: PropTypes.bool
+  isCompletedShown: PropTypes.bool,
 };
 
 export default TodoList;

@@ -1,12 +1,12 @@
-@import './app.css';
-@import './todo-list.css';
+@import "./app.css";
+@import "./todo-list.css";
 
-.item-container {
+.item {
   border: solid black 2px;
   padding: 5px;
 }
 
-.item-container:hover {
+.item:hover {
   cursor: pointer;
   background-color: black;
   color: white;
@@ -16,4 +16,10 @@
   background-color: green;
   color: white;
   text-decoration: line-through;
+}
+
+.item-container {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
 }
