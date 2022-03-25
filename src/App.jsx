@@ -111,7 +111,8 @@ const App = () => {
           />
         )}
         {isAddClicked === true ? (
-          <div>
+          <div className="add-item-input-form">
+            <label htmlFor="new-item">Task Name: </label>
             <input
               type="text"
               name="new-item"
@@ -119,6 +120,7 @@ const App = () => {
               value={newItemNameInput}
               onChange={(e) => setNewItemNameInput(e.target.value)}
             />
+            <label htmlFor="priority">Task Priority: (0-3)</label>
             <input
               type="number"
               min="0"

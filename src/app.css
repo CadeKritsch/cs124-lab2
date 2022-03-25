@@ -24,3 +24,9 @@
   cursor: pointer;
   background-color: aquamarine;
 }
+
+.add-item-input-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}

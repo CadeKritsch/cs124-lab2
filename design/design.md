@@ -17,3 +17,9 @@
 - Completed tasks can be marked uncompleted by clicking on it again.
 - At this time, only completed items can be deleted (this happens from the dropdown menu).
 - One notable challenge we had was when we added a rename button besides each item, we first added it inside the map function so when we enter the text input, all the text inputs of other tasks change as well. So we moved the Rename button inside the TodoItem component instead in order to associate each item with their own button.
+
+### Updated Design For Lab 3
+
+- We did not change the UI design of the app from lab 2.
+- We designed the database so that the hierarchy of directories goes as such: users (collection) -> each user (doc) -> items for each user (collection) -> each item (document) -> each item's keys and values (fields).
+- We added priority for each task. This is a number input field so that the user can either choose to type in directly or use the arrow buttons to increment/ decrement.
