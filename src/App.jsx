@@ -38,7 +38,7 @@ const App = () => {
   // const [todoItems, setTodoItems] = useState(INITIAL_DATA);
   const TODO_ITEMS_PATH = "/users/test-user/todo-items";
   const todoItemsRef = collection(db, TODO_ITEMS_PATH);
-  const [todoItems, loading, error] = useCollectionData(todoItemsRef);
+  const [todoItems, loading] = useCollectionData(todoItemsRef);
   const [isAddClicked, setIsAddClicked] = useState(false);
   const [newItemNameInput, setNewItemNameInput] = useState("");
   const [isCompletedShown, setIsCompletedShown] = useState(true);
