@@ -1,7 +1,6 @@
 {
   "name": "cs124-lab2",
   "version": "0.1.0",
-  "homepage": "https://CadeKritsch.github.io/cs124-lab2",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.8.1",
