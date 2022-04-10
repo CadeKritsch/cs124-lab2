@@ -10,12 +10,14 @@ const TodoItem = (props) => {
     <>
       <div className="item-container">
         <div
-          className={`item ${props.status === true ? "completed-item" : null}`}
+          className={`item ${
+            props.isCompleted === true ? "completed-item" : null
+          }`}
           onClick={() => {
             props.onItemChange(
               props.id,
-              "itemStatus",
-              props.status ? false : true
+              "isCompleted",
+              props.isCompleted ? false : true
             );
           }}
         >
@@ -57,7 +59,7 @@ const TodoItem = (props) => {
 
 TodoItem.propTypes = {
   name: PropTypes.string,
-  status: PropTypes.bool,
+  isCompleted: PropTypes.bool,
   id: PropTypes.string,
   onItemChange: PropTypes.func,
 };

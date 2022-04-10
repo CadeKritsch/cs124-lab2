@@ -13,32 +13,50 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
+import Select from "react-select";
 
 import { db } from "./firebase.jsx";
 
 // const INITIAL_DATA = [
 //   {
 //     itemName: "default item",
-//     itemStatus: false,
+//     isCompleted: false,
 //     id: generateUniqueID(),
 //   },
 //   {
 //     itemName: "another item",
-//     itemStatus: false,
+//     isCompleted: false,
 //     id: generateUniqueID(),
 //   },
 //   {
 //     itemName: "and another item",
-//     itemStatus: true,
+//     isCompleted: true,
 //     id: generateUniqueID(),
 //   },
 // ];
+const listsRef = collection(db, "/lists/"); // path to the root directory in Firebase
+// const querySnapshot = getDocs(listsRef);
+// querySnapshot.forEach((doc) => {
+//   options.push(doc.data().listName);
+// });
+// const defaultListId = generateUniqueID();
 
 const App = () => {
   // const [todoItems, setTodoItems] = useState(INITIAL_DATA);
-  const TODO_ITEMS_PATH = "/users/test-user/todo-items";
-  const todoItemsRef = collection(db, TODO_ITEMS_PATH);
-  const [todoItems, loading] = useCollectionData(todoItemsRef);
+  const [listId, setListId] = useState("defaultlist1234");
+  const [listName, setListName] = useState("Default");
+  const TODO_ITEMS_PATH = `/lists/${listId}/tasks`;
+  const todoItemsRef = collection(db, `/lists/${listId}/tasks`); // ref to tasks changes with listId and gets passed to child component TodoList
+  const [lists] = useCollectionData(listsRef);
+  // map lists to values and labels
+  // options is what appears in the dropdown menu
+  const options = lists
+    ? lists.map((l) => {
+        return { value: l.listId, label: l.listName };
+      })
+    : [];
+  console.log(options);
+
   const [isAddClicked, setIsAddClicked] = useState(false);
   const [newItemNameInput, setNewItemNameInput] = useState("");
   const [isCompletedShown, setIsCompletedShown] = useState(true);
@@ -55,16 +73,23 @@ const App = () => {
     });
   };
 
+  const handleListNameChange = (id, newName) => {
+    const changedListRef = doc(db, `/lists/${id}`);
+    updateDoc(changedListRef, {
+      listName: newName,
+    });
+  };
+
   const handleItemAdd = (name) => {
     // setTodoItems([
     //   ...todoItems,
-    //   { itemName: name, itemStatus: false, id: generateUniqueID() },
+    //   { itemName: name, isCompleted: false, id: generateUniqueID() },
     // ]);
     const id = generateUniqueID();
     const newDocRef = doc(db, `${TODO_ITEMS_PATH}/${id}`);
     setDoc(newDocRef, {
       itemName: name,
-      itemStatus: false,
+      isCompleted: false,
       id,
     });
     setIsAddClicked(false);
@@ -76,13 +101,13 @@ const App = () => {
   };
 
   const handleDeleteCompleted = async () => {
-    // const newData = todoItems.filter((item) => item.itemStatus === false);
+    // const newData = todoItems.filter((item) => item.isCompleted === false);
     // setTodoItems(newData);
 
     // create a query with the required conditions
     const completedItemsQuery = query(
       collection(db, TODO_ITEMS_PATH),
-      where("itemStatus", "==", true)
+      where("isCompleted", "==", true)
     );
 
     // get a snapshot of all matching docs
@@ -97,20 +122,38 @@ const App = () => {
     });
   };
 
+  const handleAddList = () => {
+    const newListId = generateUniqueID();
+    const newListRef = doc(db, `lists/${newListId}`);
+    setDoc(newListRef, {
+      listName: "New List",
+      listId: newListId,
+    });
+  };
+
   return (
     <>
       <div className="app-container">
-        {loading ? (
-          "Loading, Please wait..."
-        ) : (
-          <TodoList
-            data={todoItems}
-            onItemChange={handleItemChange}
-            onItemAdd={handleItemAdd}
-            isCompletedShown={isCompletedShown}
-          />
-        )}
-        {isAddClicked === true ? (
+        <Select
+          defaultValue={listId}
+          onChange={(selectedList) => {
+            setListId(selectedList.value);
+            setListName(selectedList.label);
+          }}
+          options={options}
+        />
+
+        <TodoList
+          onItemChange={handleItemChange}
+          onItemAdd={handleItemAdd}
+          isCompletedShown={isCompletedShown}
+          listName={listName}
+          listId={listId}
+          onListNameChange={handleListNameChange}
+          todoItemsRef={todoItemsRef}
+        />
+
+        {isAddClicked ? (
           <div className="add-item-input-form">
             <label htmlFor="new-item">Task Name: </label>
             <input
@@ -141,6 +184,7 @@ const App = () => {
           isCompletedShown={isCompletedShown}
           onToggleShowCompleted={handleToggleShowCompleted}
           onDeleteCompleted={handleDeleteCompleted}
+          onAddList={handleAddList}
         />
       </div>
     </>
