@@ -23,3 +23,14 @@
   flex-direction: row;
   gap: 0.5em;
 }
+
+button {
+  padding: 2px;
+  color: black;
+  font-family: Helvetica;
+}
+
+button:hover {
+  background-color: lightgrey;
+  border-color: black;
+}

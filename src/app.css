@@ -13,16 +13,18 @@
   justify-content: center;
   gap: 2em;
   min-height: 99vh;
+  font-family: Helvetica;
 }
 
 .add-button {
-  border: solid aquamarine 4px;
+  border: solid lightblue 4px;
   padding: 5px;
+
 }
 
 .add-button:hover {
   cursor: pointer;
-  background-color: aquamarine;
+  background-color: lightblue;
 }
 
 .add-item-input-form {

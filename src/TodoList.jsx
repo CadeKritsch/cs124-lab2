@@ -14,8 +14,8 @@ const TodoList = (props) => {
   return (
     <>
       <div className="list-container">
-        <div className="list-name">
-          <div>{props.listName}</div>
+        <div>
+          <div tabindex="0" className="list-name">{props.listName}</div>
           {isRenameClicked ? (
             <>
               <input

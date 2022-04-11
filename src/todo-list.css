@@ -6,4 +6,17 @@
   gap: 0.35em;
   justify-content: center;
   align-items: center;
+  border-style: groove;
+  border-color: lightblue;
+  border-width: 5px;
+  border-radius: 10px 10px 10px 10px;
+  padding: 20px;
+}
+.list-name {
+  padding-bottom: 5px;
+  font-family: Helvetica;
+  font-weight: bold;
+}
+.list-name-rename {
+  font-size: 1px;
 }

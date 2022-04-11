@@ -134,7 +134,7 @@ const App = () => {
   return (
     <>
       <div className="app-container">
-        <Select
+        <Select aria-label={"List Selection"}
           defaultValue={listId}
           onChange={(selectedList) => {
             setListId(selectedList.value);
@@ -176,7 +176,8 @@ const App = () => {
             <button onClick={() => handleItemAdd(newItemNameInput)}>Add</button>
           </div>
         ) : (
-          <div className="add-button" onClick={() => setIsAddClicked(true)}>
+          <div className="add-button" onClick={() => setIsAddClicked(true)}
+               tabindex="0">
             Add A Task
           </div>
         )}
