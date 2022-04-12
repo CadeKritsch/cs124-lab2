@@ -23,3 +23,13 @@
 - We did not change the UI design of the app from lab 2.
 - We designed the database so that the hierarchy of directories goes as such: users (collection) -> each user (doc) -> items for each user (collection) -> each item (document) -> each item's keys and values (fields).
 - We added priority for each task. This is a number input field so that the user can either choose to type in directly or use the arrow buttons to increment/ decrement.
+
+### Updated Design For Lab 4
+
+- In order to update our application with the ability to accommodate multiple lists, we have a select button at the top so the user can select the list they want to look at.
+- We updated the application to include the user-given name of the list front and center, with a black background, so it is the first thing the user looks at.
+- We put the rename button for the list name below the list name to further set the list name apart as important.
+- We added a curved black border around the list to give dimension to the list and make it more of a succinct list, curved to not appear as aggressive to the user.
+- We added a portrait background for when the screen size is small and a horizontal background for when the screen size is large to show that our application is adaptable to different screen sizes.
+- The backgrounds themselves were added to give the application a more full/complete appearance, both backgrounds being a lighter color so as not to detract attention from the list being displayed.
+- Changed colors (specifically on the Add A Task button and the Select dropdown) so that there is more black/white contrast to maximize accessibility with the new backgrounds.

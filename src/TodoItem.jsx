@@ -6,17 +6,24 @@ import "./todo-item.css";
 const TodoItem = (props) => {
   const [updatedName, setUpdatedName] = useState("");
   const [isRenameClicked, setIsRenameClicked] = useState(false);
+  /* const [toggleCompleted, setToggleCompleted] = useState(props.isCompleted);
+  const handleSetToggleCompleted =() => {
+    setToggleCompleted((prevState) => !prevState);
+  } */
   return (
     <>
       <div className="item-container">
         <div
-          className={`item ${props.status === true ? "completed-item" : null}`}
+          tabindex="0"
+          onKeyPress={() => {
+            props.onItemChange(props.id, "isCompleted", !props.isCompleted);
+          }}
+          aria-roledescription="ListItem"
+          className={`item ${
+            props.isCompleted === true ? "completed-item" : null
+          }`}
           onClick={() => {
-            props.onItemChange(
-              props.id,
-              "itemStatus",
-              props.status ? false : true
-            );
+            props.onItemChange(props.id, "isCompleted", !props.isCompleted);
           }}
         >
           {props.name}
@@ -24,6 +31,7 @@ const TodoItem = (props) => {
         {isRenameClicked ? (
           <>
             <input
+              tabindex="0"
               type="text"
               name="updated-name"
               id="updated-name"
@@ -57,7 +65,7 @@ const TodoItem = (props) => {
 
 TodoItem.propTypes = {
   name: PropTypes.string,
-  status: PropTypes.bool,
+  isCompleted: PropTypes.bool,
   id: PropTypes.string,
   onItemChange: PropTypes.func,
 };
