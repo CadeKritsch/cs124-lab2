@@ -78,6 +78,7 @@ const App = () => {
     updateDoc(changedListRef, {
       listName: newName,
     });
+    setListName(newName);
   };
 
   const handleItemAdd = (name) => {
@@ -134,7 +135,9 @@ const App = () => {
   return (
     <>
       <div className="app-container">
-        <Select aria-label={"List Selection"}
+        <Select
+        className="select-list-button"
+          aria-label={"List Selection"}
           defaultValue={listId}
           onChange={(selectedList) => {
             setListId(selectedList.value);
@@ -176,8 +179,12 @@ const App = () => {
             <button onClick={() => handleItemAdd(newItemNameInput)}>Add</button>
           </div>
         ) : (
-          <div className="add-button" onClick={() => setIsAddClicked(true)}
-               tabindex="0">
+          <div
+            className="add-button"
+            onKeyPress={() => setIsAddClicked(true)}
+            onClick={() => setIsAddClicked(true)}
+            tabindex="0"
+          >
             Add A Task
           </div>
         )}
