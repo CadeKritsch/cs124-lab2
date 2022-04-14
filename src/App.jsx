@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { generateUniqueID } from "web-vitals/dist/modules/lib/generateUniqueID";
 import { useCollectionData } from "react-firebase-hooks/firestore";
+import { getAuth, signOut} from "firebase/auth";
+import { useAuthState, useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
 import TodoList from "./TodoList";
 import MenuPopupState from "./Menu";
 import {
@@ -40,8 +42,29 @@ const listsRef = collection(db, "/lists/"); // path to the root directory in Fir
 //   options.push(doc.data().listName);
 // });
 // const defaultListId = generateUniqueID();
+const auth = getAuth();
 
-const App = () => {
+function App() {
+  const [user, loading, error] = useAuthState(auth);
+  if (user == null) {
+    return (
+        <SignIn/>
+    )
+  }
+  return (
+      SignedInApp user={user}/>
+  )
+}
+
+function SignIn() {
+  const [user, loading, error] = useAuthState(auth);
+  const [signInWithGoogle] = useSignInWithGoogle(auth);
+  return (
+      <button onClick={()=>signInWithGoogle()}>Sign In</button>
+  )
+}
+
+const SignedInApp = () => {
   // const [todoItems, setTodoItems] = useState(INITIAL_DATA);
   const [listId, setListId] = useState("defaultlist1234");
   const [listName, setListName] = useState("Default");
@@ -61,7 +84,6 @@ const App = () => {
   const [newItemNameInput, setNewItemNameInput] = useState("");
   const [isCompletedShown, setIsCompletedShown] = useState(true);
   const [priorityInput, setPriorityInput] = useState(0);
-
   const handleItemChange = (id, field, value) => {
     // const newTodoItems = todoItems.map((item) => {
     //   return item.id === id ? { ...item, [field]: value } : item;
@@ -198,5 +220,5 @@ const App = () => {
     </>
   );
 };
-
+}
 export default App;
