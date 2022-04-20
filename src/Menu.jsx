@@ -1,9 +1,9 @@
-import * as React from 'react';
-import PropTypes from 'prop-types';
-import Button from '@mui/material/Button';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
+import * as React from "react";
+import PropTypes from "prop-types";
+import Button from "@mui/material/Button";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import PopupState, { bindTrigger, bindMenu } from "material-ui-popup-state";
 
 export default function MenuPopupState(props) {
   return (
@@ -15,9 +15,14 @@ export default function MenuPopupState(props) {
           </Button>
           <Menu {...bindMenu(popupState)}>
             <MenuItem onClick={props.onToggleShowCompleted}>
-              {props.isCompletedShown ? 'Hide Completed Items' : 'Show Completed Items'}
+              {props.isCompletedShown
+                ? "Hide Completed Items"
+                : "Show Completed Items"}
             </MenuItem>
-            <MenuItem onClick={props.onDeleteCompleted}>Delete Completed Items</MenuItem>
+            <MenuItem onClick={props.onDeleteCompleted}>
+              Delete Completed Items
+            </MenuItem>
+            <MenuItem onClick={props.onAddList}>Add a New List</MenuItem>
           </Menu>
         </React.Fragment>
       )}
@@ -28,5 +33,6 @@ export default function MenuPopupState(props) {
 MenuPopupState.propTypes = {
   onToggleShowCompleted: PropTypes.func,
   onDeleteCompleted: PropTypes.func,
-  isCompletedShown: PropTypes.bool
+  isCompletedShown: PropTypes.bool,
+  onAddList: PropTypes.func,
 };
