@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { generateUniqueID } from "web-vitals/dist/modules/lib/generateUniqueID";
 import { useCollectionData } from "react-firebase-hooks/firestore";
-import { getAuth, signOut} from "firebase/auth";
-import { useAuthState, useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { getAuth, signOut } from "firebase/auth";
+import {
+  useAuthState,
+  useCreateUserWithEmailAndPassword,
+  useSignInWithEmailAndPassword,
+  useSignInWithGoogle,
+} from "react-firebase-hooks/auth";
 import TodoList from "./TodoList";
 import MenuPopupState from "./Menu";
 import {
@@ -44,28 +49,115 @@ const listsRef = collection(db, "/lists/"); // path to the root directory in Fir
 // const defaultListId = generateUniqueID();
 const auth = getAuth();
 
-function App() {
+const App = () => {
   const [user, loading, error] = useAuthState(auth);
   if (user == null) {
-    return (
-        <SignIn/>
-    )
+    return <SignIn />;
   }
-  return (
-      SignedInApp user={user}/>
-  )
-}
+  return <SignedInApp user={user} />;
+};
 
-function SignIn() {
-  const [user, loading, error] = useAuthState(auth);
-  const [signInWithGoogle] = useSignInWithGoogle(auth);
+const SignIn = () => {
   return (
-      <button onClick={()=>signInWithGoogle()}>Sign In</button>
-  )
-}
+    <>
+      <div className="app-container">
+        <div className="sign-in-methods">
+          <SignInWithGoogle />
+          <div>OR</div>
+          <SignInWithEmail />
+          <div>OR</div>
+          <SignUpWithEmail />
+        </div>
+      </div>
+    </>
+  );
+};
 
-const SignedInApp = () => {
-  // const [todoItems, setTodoItems] = useState(INITIAL_DATA);
+const SignInWithGoogle = () => {
+  const [signInWithGoogle, user, loading, error] = useSignInWithGoogle(auth);
+
+  return (
+    <>
+      <button onClick={() => signInWithGoogle()}>Sign In With Google</button>
+    </>
+  );
+};
+
+const SignInWithEmail = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [signInWithEmailAndPassword, user, loading, error] =
+    useSignInWithEmailAndPassword(auth);
+
+  return (
+    <>
+      <div className="email-signin">
+        <input
+          type="text"
+          name="Email"
+          id="email"
+          value={email}
+          placeholder={"Email"}
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
+        />
+        <input
+          type="password"
+          name="Password"
+          id="email"
+          value={password}
+          placeholder={"Password"}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
+        />
+        <button onClick={() => signInWithEmailAndPassword(email, password)}>
+          Sign In With Email
+        </button>
+      </div>
+    </>
+  );
+};
+
+const SignUpWithEmail = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [createUserWithEmailAndPassword, user, loading, error] =
+    useCreateUserWithEmailAndPassword(auth);
+
+  return (
+    <>
+      <input
+        type="text"
+        name="Email"
+        id="email"
+        value={email}
+        placeholder={"Email"}
+        onChange={(e) => {
+          setEmail(e.target.value);
+        }}
+      />
+      <input
+        type="password"
+        name="Password"
+        id="password"
+        value={password}
+        placeholder={"Create a password"}
+        onChange={(e) => {
+          setPassword(e.target.value);
+        }}
+      />
+      <button onClick={() => createUserWithEmailAndPassword(email, password)}>
+        Create Account
+      </button>
+    </>
+  );
+};
+
+const SignedInApp = ({ user }) => {
+  //TODO
+  // console.log(user);
   const [listId, setListId] = useState("defaultlist1234");
   const [listName, setListName] = useState("Default");
   const TODO_ITEMS_PATH = `/lists/${listId}/tasks`;
@@ -78,17 +170,12 @@ const SignedInApp = () => {
         return { value: l.listId, label: l.listName };
       })
     : [];
-  console.log(options);
 
   const [isAddClicked, setIsAddClicked] = useState(false);
   const [newItemNameInput, setNewItemNameInput] = useState("");
   const [isCompletedShown, setIsCompletedShown] = useState(true);
   const [priorityInput, setPriorityInput] = useState(0);
   const handleItemChange = (id, field, value) => {
-    // const newTodoItems = todoItems.map((item) => {
-    //   return item.id === id ? { ...item, [field]: value } : item;
-    // });
-    // setTodoItems(newTodoItems);
     const changedDocRef = doc(db, `${TODO_ITEMS_PATH}/${id}`);
     updateDoc(changedDocRef, {
       [field]: value,
@@ -104,10 +191,6 @@ const SignedInApp = () => {
   };
 
   const handleItemAdd = (name) => {
-    // setTodoItems([
-    //   ...todoItems,
-    //   { itemName: name, isCompleted: false, id: generateUniqueID() },
-    // ]);
     const id = generateUniqueID();
     const newDocRef = doc(db, `${TODO_ITEMS_PATH}/${id}`);
     setDoc(newDocRef, {
@@ -124,9 +207,6 @@ const SignedInApp = () => {
   };
 
   const handleDeleteCompleted = async () => {
-    // const newData = todoItems.filter((item) => item.isCompleted === false);
-    // setTodoItems(newData);
-
     // create a query with the required conditions
     const completedItemsQuery = query(
       collection(db, TODO_ITEMS_PATH),
@@ -136,13 +216,24 @@ const SignedInApp = () => {
     // get a snapshot of all matching docs
     const querySnapshot = await getDocs(completedItemsQuery);
 
-    // console.log(querySnapshot);
     // perform delete on each one
     querySnapshot.forEach((task) => {
       const delDocRef = doc(db, `${TODO_ITEMS_PATH}/${task.id}`);
       deleteDoc(delDocRef);
-      console.log(task.id, "=>", task.data());
     });
+  };
+
+  const handleDeleteList = async () => {
+    // Delete the entire subcollection of tasks
+    const querySnapshot = await getDocs(todoItemsRef);
+    querySnapshot.forEach((task) => {
+      const delDocRef = doc(db, `${TODO_ITEMS_PATH}/${task.id}`);
+      deleteDoc(delDocRef);
+    });
+
+    // Delete the list itself
+    const delListRef = doc(db, `/lists/${listId}`);
+    deleteDoc(delListRef);
   };
 
   const handleAddList = () => {
@@ -151,14 +242,23 @@ const SignedInApp = () => {
     setDoc(newListRef, {
       listName: "New List",
       listId: newListId,
+      ownerId: user.uid,
     });
+  };
+
+  const handleSignOut = () => {
+    signOut(auth);
   };
 
   return (
     <>
       <div className="app-container">
+        <p>
+          You are signed in as{" "}
+          <span className="user-display-name">{user.displayName}</span>.
+        </p>
         <Select
-        className="select-list-button"
+          className="select-list-button"
           aria-label={"List Selection"}
           defaultValue={listId}
           onChange={(selectedList) => {
@@ -215,10 +315,12 @@ const SignedInApp = () => {
           onToggleShowCompleted={handleToggleShowCompleted}
           onDeleteCompleted={handleDeleteCompleted}
           onAddList={handleAddList}
+          onSignOut={handleSignOut}
+          onDeleteList={handleDeleteList}
         />
       </div>
     </>
   );
 };
-}
+
 export default App;

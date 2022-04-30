@@ -23,6 +23,8 @@ export default function MenuPopupState(props) {
               Delete Completed Items
             </MenuItem>
             <MenuItem onClick={props.onAddList}>Add a New List</MenuItem>
+            <MenuItem onClick={props.onDeleteList}>Delete List</MenuItem>
+            <MenuItem onClick={props.onSignOut}>Sign Out</MenuItem>
           </Menu>
         </React.Fragment>
       )}
@@ -35,4 +37,6 @@ MenuPopupState.propTypes = {
   onDeleteCompleted: PropTypes.func,
   isCompletedShown: PropTypes.bool,
   onAddList: PropTypes.func,
+  onSignOut: PropTypes.func,
+  onDeleteList: PropTypes.func,
 };
