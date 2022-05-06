@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { generateUniqueID } from "web-vitals/dist/modules/lib/generateUniqueID";
 import { useCollectionData } from "react-firebase-hooks/firestore";
-import { getAuth, signOut } from "firebase/auth";
+import { getAuth, signOut, sendEmailVerification } from "firebase/auth";
 import {
   useAuthState,
   useCreateUserWithEmailAndPassword,
@@ -17,6 +17,7 @@ import {
   getDocs,
   where,
   setDoc,
+  getDoc,
   updateDoc,
   deleteDoc,
   arrayUnion,
@@ -165,7 +166,6 @@ const SignUpWithEmail = () => {
 const SignedInApp = ({ user }) => {
   const listsRef = query(
     collection(db, "lists"),
-    // where("ownerId", "==", user.uid),
     where("sharedWith", "array-contains", user.email)
   );
   const [listId, setListId] = useState(defaultListId);
@@ -185,6 +185,8 @@ const SignedInApp = ({ user }) => {
   const [newItemNameInput, setNewItemNameInput] = useState("");
   const [isCompletedShown, setIsCompletedShown] = useState(true);
   const [priorityInput, setPriorityInput] = useState(0);
+  const [isListShared, setIsListShared] = useState(false);
+
   const handleItemChange = (id, field, value) => {
     const changedDocRef = doc(db, `${TODO_ITEMS_PATH}/${id}`);
     updateDoc(changedDocRef, {
@@ -192,13 +194,15 @@ const SignedInApp = ({ user }) => {
     });
   };
 
-  useEffect(() => {
-    const changedListRef = doc(db, `/lists/${listId}`);
-    updateDoc(changedListRef, {
-      ownerId: user.uid,
-      sharedWith: [user.email],
-    });
-  });
+  // this runs everytime the app mounts
+  // this caused problems because it reset ownership everytime the app renders
+  // useEffect(() => {
+  //   const changedListRef = doc(db, `/lists/${listId}`);
+  //   updateDoc(changedListRef, {
+  //     ownerId: user.uid,
+  //     sharedWith: [user.email],
+  //   });
+  // });
 
   const handleListNameChange = (id, newName) => {
     const changedListRef = doc(db, `/lists/${id}`);
@@ -209,7 +213,6 @@ const SignedInApp = ({ user }) => {
   };
 
   const handleShareList = async (id, email) => {
-    console.log("Id of shared list", id);
     const sharedListRef = doc(db, `/lists/${id}`);
     await updateDoc(sharedListRef, {
       sharedWith: arrayUnion(email),
@@ -273,6 +276,20 @@ const SignedInApp = ({ user }) => {
     });
   };
 
+  const findIsListShared = async () => {
+    const currListRef = doc(db, `/lists/${listId}`);
+    const docSnap = await getDoc(currListRef);
+    if (docSnap.exists()) {
+      const listData = docSnap.data();
+      return listData.sharedWith.length > 1;
+    }
+  };
+
+  findIsListShared().then((promiseResult) => {
+    console.log(promiseResult);
+    setIsListShared(promiseResult);
+  });
+
   const handleSignOut = () => {
     signOut(auth);
   };
@@ -305,6 +322,7 @@ const SignedInApp = ({ user }) => {
           listId={listId}
           onListNameChange={handleListNameChange}
           todoItemsRef={todoItemsRef}
+          isListShared={isListShared}
         />
 
         {isAddClicked ? (
