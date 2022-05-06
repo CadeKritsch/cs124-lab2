@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { generateUniqueID } from "web-vitals/dist/modules/lib/generateUniqueID";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { getAuth, signOut } from "firebase/auth";
@@ -19,10 +19,17 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  arrayUnion,
 } from "firebase/firestore";
 import Select from "react-select";
 
 import { db } from "./firebase.jsx";
+import { Modal } from "./Modal";
+import "reactjs-popup/dist/index.css";
+
+//TODO:
+// defaultListId isn't what I expect it to be-- a random string
+// share button not updating the database as expected
 
 // const INITIAL_DATA = [
 //   {
@@ -41,12 +48,12 @@ import { db } from "./firebase.jsx";
 //     id: generateUniqueID(),
 //   },
 // ];
-const listsRef = collection(db, "/lists/"); // path to the root directory in Firebase
+
 // const querySnapshot = getDocs(listsRef);
 // querySnapshot.forEach((doc) => {
 //   options.push(doc.data().listName);
 // });
-// const defaultListId = generateUniqueID();
+const defaultListId = generateUniqueID();
 const auth = getAuth();
 
 const App = () => {
@@ -156,13 +163,16 @@ const SignUpWithEmail = () => {
 };
 
 const SignedInApp = ({ user }) => {
-  //TODO
-  // console.log(user);
-  const [listId, setListId] = useState("defaultlist1234");
+  const listsRef = query(
+    collection(db, "lists"),
+    // where("ownerId", "==", user.uid),
+    where("sharedWith", "array-contains", user.email)
+  );
+  const [listId, setListId] = useState(defaultListId);
   const [listName, setListName] = useState("Default");
   const TODO_ITEMS_PATH = `/lists/${listId}/tasks`;
   const todoItemsRef = collection(db, `/lists/${listId}/tasks`); // ref to tasks changes with listId and gets passed to child component TodoList
-  const [lists] = useCollectionData(listsRef);
+  const [lists, loading, error] = useCollectionData(listsRef);
   // map lists to values and labels
   // options is what appears in the dropdown menu
   const options = lists
@@ -182,12 +192,28 @@ const SignedInApp = ({ user }) => {
     });
   };
 
+  useEffect(() => {
+    const changedListRef = doc(db, `/lists/${listId}`);
+    updateDoc(changedListRef, {
+      ownerId: user.uid,
+      sharedWith: [user.email],
+    });
+  });
+
   const handleListNameChange = (id, newName) => {
     const changedListRef = doc(db, `/lists/${id}`);
     updateDoc(changedListRef, {
       listName: newName,
     });
     setListName(newName);
+  };
+
+  const handleShareList = async (id, email) => {
+    console.log("Id of shared list", id);
+    const sharedListRef = doc(db, `/lists/${id}`);
+    await updateDoc(sharedListRef, {
+      sharedWith: arrayUnion(email),
+    });
   };
 
   const handleItemAdd = (name) => {
@@ -243,6 +269,7 @@ const SignedInApp = ({ user }) => {
       listName: "New List",
       listId: newListId,
       ownerId: user.uid,
+      sharedWith: [user.email],
     });
   };
 
@@ -267,6 +294,8 @@ const SignedInApp = ({ user }) => {
           }}
           options={options}
         />
+
+        <Modal onShareList={handleShareList} listId={listId} />
 
         <TodoList
           onItemChange={handleItemChange}
