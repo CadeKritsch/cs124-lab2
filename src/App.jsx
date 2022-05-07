@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { generateUniqueID } from "web-vitals/dist/modules/lib/generateUniqueID";
 import { useCollectionData } from "react-firebase-hooks/firestore";
-import { getAuth, signOut, sendEmailVerification } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 import {
   useAuthState,
   useCreateUserWithEmailAndPassword,
@@ -58,7 +58,7 @@ const defaultListId = generateUniqueID();
 const auth = getAuth();
 
 const App = () => {
-  const [user, loading, error] = useAuthState(auth);
+  const [user] = useAuthState(auth);
   if (user == null) {
     return <SignIn />;
   }
@@ -82,7 +82,7 @@ const SignIn = () => {
 };
 
 const SignInWithGoogle = () => {
-  const [signInWithGoogle, user, loading, error] = useSignInWithGoogle(auth);
+  const [signInWithGoogle] = useSignInWithGoogle(auth);
 
   return (
     <>
@@ -94,7 +94,7 @@ const SignInWithGoogle = () => {
 const SignInWithEmail = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [signInWithEmailAndPassword, user, loading, error] =
+  const [signInWithEmailAndPassword] =
     useSignInWithEmailAndPassword(auth);
 
   return (
@@ -131,7 +131,7 @@ const SignInWithEmail = () => {
 const SignUpWithEmail = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [createUserWithEmailAndPassword, user, loading, error] =
+  const [createUserWithEmailAndPassword] =
     useCreateUserWithEmailAndPassword(auth);
 
   return (
@@ -172,7 +172,7 @@ const SignedInApp = ({ user }) => {
   const [listName, setListName] = useState("Default");
   const TODO_ITEMS_PATH = `/lists/${listId}/tasks`;
   const todoItemsRef = collection(db, `/lists/${listId}/tasks`); // ref to tasks changes with listId and gets passed to child component TodoList
-  const [lists, loading, error] = useCollectionData(listsRef);
+  const [lists] = useCollectionData(listsRef);
   // map lists to values and labels
   // options is what appears in the dropdown menu
   const options = lists
@@ -352,7 +352,6 @@ const SignedInApp = ({ user }) => {
             className="add-button"
             onKeyPress={() => setIsAddClicked(true)}
             onClick={() => setIsAddClicked(true)}
-            tabindex="0"
           >
             Add A Task
           </div>
