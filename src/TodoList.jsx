@@ -6,16 +6,19 @@ import TodoItem from "./TodoItem";
 import "./todo-list.css";
 
 const TodoList = (props) => {
+  console.log(props.isListShared);
   // appropriate todo items are grabbed using the path to the appropriate list passed in via props
   const [todoItems] = useCollectionData(props.todoItemsRef);
   const [isRenameClicked, setIsRenameClicked] = useState(false);
   const [updatedName, setUpdatedName] = useState("");
-  // console.log(todoItems);
   return (
     <>
       <div className="list-container">
         <div className="list-header">
-          <div tabindex="0" className="list-name">{props.listName}</div>
+          <div tabindex="0" className="list-name">
+            {props.listName}
+            {props.isListShared ? "(Shared)" : null}
+          </div>
           {isRenameClicked ? (
             <>
               <input

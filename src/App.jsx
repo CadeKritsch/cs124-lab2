@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { generateUniqueID } from "web-vitals/dist/modules/lib/generateUniqueID";
 import { useCollectionData } from "react-firebase-hooks/firestore";
+import { getAuth, signOut } from "firebase/auth";
+import {
+  useAuthState,
+  useCreateUserWithEmailAndPassword,
+  useSignInWithEmailAndPassword,
+  useSignInWithGoogle,
+} from "react-firebase-hooks/auth";
 import TodoList from "./TodoList";
 import MenuPopupState from "./Menu";
 import {
@@ -10,12 +17,20 @@ import {
   getDocs,
   where,
   setDoc,
+  getDoc,
   updateDoc,
   deleteDoc,
+  arrayUnion,
 } from "firebase/firestore";
 import Select from "react-select";
 
 import { db } from "./firebase.jsx";
+import { Modal } from "./Modal";
+import "reactjs-popup/dist/index.css";
+
+//TODO:
+// defaultListId isn't what I expect it to be-- a random string
+// share button not updating the database as expected
 
 // const INITIAL_DATA = [
 //   {
@@ -34,16 +49,126 @@ import { db } from "./firebase.jsx";
 //     id: generateUniqueID(),
 //   },
 // ];
-const listsRef = collection(db, "/lists/"); // path to the root directory in Firebase
+
 // const querySnapshot = getDocs(listsRef);
 // querySnapshot.forEach((doc) => {
 //   options.push(doc.data().listName);
 // });
-// const defaultListId = generateUniqueID();
+const defaultListId = generateUniqueID();
+const auth = getAuth();
 
 const App = () => {
-  // const [todoItems, setTodoItems] = useState(INITIAL_DATA);
-  const [listId, setListId] = useState("defaultlist1234");
+  const [user] = useAuthState(auth);
+  if (user == null) {
+    return <SignIn />;
+  }
+  return <SignedInApp user={user} />;
+};
+
+const SignIn = () => {
+  return (
+    <>
+      <div className="app-container">
+        <div className="sign-in-methods">
+          <SignInWithGoogle />
+          <div>OR</div>
+          <SignInWithEmail />
+          <div>OR</div>
+          <SignUpWithEmail />
+        </div>
+      </div>
+    </>
+  );
+};
+
+const SignInWithGoogle = () => {
+  const [signInWithGoogle] = useSignInWithGoogle(auth);
+
+  return (
+    <>
+      <button onClick={() => signInWithGoogle()}>Sign In With Google</button>
+    </>
+  );
+};
+
+const SignInWithEmail = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [signInWithEmailAndPassword] =
+    useSignInWithEmailAndPassword(auth);
+
+  return (
+    <>
+      <div className="email-signin">
+        <input
+          type="text"
+          name="Email"
+          id="email"
+          value={email}
+          placeholder={"Email"}
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
+        />
+        <input
+          type="password"
+          name="Password"
+          id="email"
+          value={password}
+          placeholder={"Password"}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
+        />
+        <button onClick={() => signInWithEmailAndPassword(email, password)}>
+          Sign In With Email
+        </button>
+      </div>
+    </>
+  );
+};
+
+const SignUpWithEmail = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [createUserWithEmailAndPassword] =
+    useCreateUserWithEmailAndPassword(auth);
+
+  return (
+    <>
+      <input
+        type="text"
+        name="Email"
+        id="email"
+        value={email}
+        placeholder={"Email"}
+        onChange={(e) => {
+          setEmail(e.target.value);
+        }}
+      />
+      <input
+        type="password"
+        name="Password"
+        id="password"
+        value={password}
+        placeholder={"Create a password"}
+        onChange={(e) => {
+          setPassword(e.target.value);
+        }}
+      />
+      <button onClick={() => createUserWithEmailAndPassword(email, password)}>
+        Create Account
+      </button>
+    </>
+  );
+};
+
+const SignedInApp = ({ user }) => {
+  const listsRef = query(
+    collection(db, "lists"),
+    where("sharedWith", "array-contains", user.email)
+  );
+  const [listId, setListId] = useState(defaultListId);
   const [listName, setListName] = useState("Default");
   const TODO_ITEMS_PATH = `/lists/${listId}/tasks`;
   const todoItemsRef = collection(db, `/lists/${listId}/tasks`); // ref to tasks changes with listId and gets passed to child component TodoList
@@ -55,23 +180,29 @@ const App = () => {
         return { value: l.listId, label: l.listName };
       })
     : [];
-  console.log(options);
 
   const [isAddClicked, setIsAddClicked] = useState(false);
   const [newItemNameInput, setNewItemNameInput] = useState("");
   const [isCompletedShown, setIsCompletedShown] = useState(true);
   const [priorityInput, setPriorityInput] = useState(0);
+  const [isListShared, setIsListShared] = useState(false);
 
   const handleItemChange = (id, field, value) => {
-    // const newTodoItems = todoItems.map((item) => {
-    //   return item.id === id ? { ...item, [field]: value } : item;
-    // });
-    // setTodoItems(newTodoItems);
     const changedDocRef = doc(db, `${TODO_ITEMS_PATH}/${id}`);
     updateDoc(changedDocRef, {
       [field]: value,
     });
   };
+
+  // this runs everytime the app mounts
+  // this caused problems because it reset ownership everytime the app renders
+  // useEffect(() => {
+  //   const changedListRef = doc(db, `/lists/${listId}`);
+  //   updateDoc(changedListRef, {
+  //     ownerId: user.uid,
+  //     sharedWith: [user.email],
+  //   });
+  // });
 
   const handleListNameChange = (id, newName) => {
     const changedListRef = doc(db, `/lists/${id}`);
@@ -81,11 +212,14 @@ const App = () => {
     setListName(newName);
   };
 
+  const handleShareList = async (id, email) => {
+    const sharedListRef = doc(db, `/lists/${id}`);
+    await updateDoc(sharedListRef, {
+      sharedWith: arrayUnion(email),
+    });
+  };
+
   const handleItemAdd = (name) => {
-    // setTodoItems([
-    //   ...todoItems,
-    //   { itemName: name, isCompleted: false, id: generateUniqueID() },
-    // ]);
     const id = generateUniqueID();
     const newDocRef = doc(db, `${TODO_ITEMS_PATH}/${id}`);
     setDoc(newDocRef, {
@@ -102,9 +236,6 @@ const App = () => {
   };
 
   const handleDeleteCompleted = async () => {
-    // const newData = todoItems.filter((item) => item.isCompleted === false);
-    // setTodoItems(newData);
-
     // create a query with the required conditions
     const completedItemsQuery = query(
       collection(db, TODO_ITEMS_PATH),
@@ -114,13 +245,24 @@ const App = () => {
     // get a snapshot of all matching docs
     const querySnapshot = await getDocs(completedItemsQuery);
 
-    // console.log(querySnapshot);
     // perform delete on each one
     querySnapshot.forEach((task) => {
       const delDocRef = doc(db, `${TODO_ITEMS_PATH}/${task.id}`);
       deleteDoc(delDocRef);
-      console.log(task.id, "=>", task.data());
     });
+  };
+
+  const handleDeleteList = async () => {
+    // Delete the entire subcollection of tasks
+    const querySnapshot = await getDocs(todoItemsRef);
+    querySnapshot.forEach((task) => {
+      const delDocRef = doc(db, `${TODO_ITEMS_PATH}/${task.id}`);
+      deleteDoc(delDocRef);
+    });
+
+    // Delete the list itself
+    const delListRef = doc(db, `/lists/${listId}`);
+    deleteDoc(delListRef);
   };
 
   const handleAddList = () => {
@@ -129,14 +271,38 @@ const App = () => {
     setDoc(newListRef, {
       listName: "New List",
       listId: newListId,
+      ownerId: user.uid,
+      sharedWith: [user.email],
     });
+  };
+
+  const findIsListShared = async () => {
+    const currListRef = doc(db, `/lists/${listId}`);
+    const docSnap = await getDoc(currListRef);
+    if (docSnap.exists()) {
+      const listData = docSnap.data();
+      return listData.sharedWith.length > 1;
+    }
+  };
+
+  findIsListShared().then((promiseResult) => {
+    console.log(promiseResult);
+    setIsListShared(promiseResult);
+  });
+
+  const handleSignOut = () => {
+    signOut(auth);
   };
 
   return (
     <>
       <div className="app-container">
+        <p>
+          You are signed in as{" "}
+          <span className="user-display-name">{user.displayName}</span>.
+        </p>
         <Select
-        className="select-list-button"
+          className="select-list-button"
           aria-label={"List Selection"}
           defaultValue={listId}
           onChange={(selectedList) => {
@@ -146,6 +312,8 @@ const App = () => {
           options={options}
         />
 
+        <Modal onShareList={handleShareList} listId={listId} />
+
         <TodoList
           onItemChange={handleItemChange}
           onItemAdd={handleItemAdd}
@@ -154,6 +322,7 @@ const App = () => {
           listId={listId}
           onListNameChange={handleListNameChange}
           todoItemsRef={todoItemsRef}
+          isListShared={isListShared}
         />
 
         {isAddClicked ? (
@@ -183,7 +352,6 @@ const App = () => {
             className="add-button"
             onKeyPress={() => setIsAddClicked(true)}
             onClick={() => setIsAddClicked(true)}
-            tabindex="0"
           >
             Add A Task
           </div>
@@ -193,6 +361,8 @@ const App = () => {
           onToggleShowCompleted={handleToggleShowCompleted}
           onDeleteCompleted={handleDeleteCompleted}
           onAddList={handleAddList}
+          onSignOut={handleSignOut}
+          onDeleteList={handleDeleteList}
         />
       </div>
     </>
