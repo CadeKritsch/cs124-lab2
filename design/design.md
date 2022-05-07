@@ -33,3 +33,22 @@
 - We added a portrait background for when the screen size is small and a horizontal background for when the screen size is large to show that our application is adaptable to different screen sizes.
 - The backgrounds themselves were added to give the application a more full/complete appearance, both backgrounds being a lighter color so as not to detract attention from the list being displayed.
 - Changed colors (specifically on the Add A Task button and the Select dropdown) so that there is more black/white contrast to maximize accessibility with the new backgrounds.
+
+### Updated Design For Lab 5
+
+- Most important thing to note regarding the changes in lab 5 is our solution to the "default list" problem.
+  - The problem: When a user signs in for the first time, or when a new user signs up, the first thing they see is a default empty list. What should do we about the ownership of this list?
+  - Ideal: Anytime a new user signs up, a list with a random id should be generated and we should automatically assign ownership of this list to the current user.
+  - Our solution: Since we couldn't figure out how to achieve the ideal described above, and we wanted to avoid the issue of having one 'hard-coded' default list whose ownership gets overwritten everytime a new user signs in/ up, our solution is to have the user select any one of the lists from the dropdown, or if they're a new user, they have to click "Add a List" to start adding tasks. That way, the default page is just a placeholder page that the user cannot really interact with.
+- Sharing
+  - We added a button that triggers a modal with a form where the user can enter the email of the user to share with.
+  - We could not implement the 'email verification' (i.e. checking if the shared user email is already a valid user of our app) but we used a regular expression to check if the inputted email is in valid email format.
+  - Feedback: For visual feedback after clicking 'Share List', we turned the button into a success message for 2 seconds, and then turned it back into the share button. We used setTimeout for this, and we made sure to clean it up in the componentDidUnmount life cycle.
+- Shared vs Unshared lists
+  - For shared lists, we show (Shared) besides the list name.
+  - To do this, we get information from the database, check if sharedWith array is longer than 1 string, and pass that information as a prop into the TodoList component.
+  - A challenge we faced while doing this was that because the isListShared boolean depended on the result of a promise, the TodoList component did not wait for the variable to be assigned a value before it mounts, and so we got 'undefined' in the props instead. We solved this by having isListShared as a state variable.
+- Firebase rules
+  - When a list is first created, the current user becomes the owner as well as the first email in the sharedWith array.
+  - On the list level, a user can read, write, create and update if they're part of the shared users, but can delete **only** if they own the list.
+  - On the task level, a user can add tasks to a list **only** if they own the list. Therefore, a user who is shared the list but doesn't own the list cannot add new tasks into the list. We chose this rule because the security it offers would be suitable for most use cases. From a usability perspective, we do, however, realize that giving the owner of the list the ability to choose permissions for the shared users would be the ideal.
